@@ -1,0 +1,22 @@
+{
+  "name": "mingle-event-store",
+  "version": "0.0.0",
+  "description": "Event store for Mingle",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oskarssylwan/mingle-event-store.git"
+  },
+  "author": "Oskars Sylwan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oskarssylwan/mingle-event-store/issues"
+  },
+  "homepage": "https://github.com/oskarssylwan/mingle-event-store#readme",
+  "dependencies": {
+    "jest": "^23.6.0"
+  }
+}
