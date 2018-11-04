@@ -2,8 +2,8 @@
   "name": "mingle-event-store",
   "version": "0.0.0",
   "description": "Event store for Mingle",
-  "main": "index.js",
   "scripts": {
+    "start": "nodemon server.js",
     "test": "jest"
   },
   "repository": {
@@ -17,6 +17,12 @@
   },
   "homepage": "https://github.com/oskarssylwan/mingle-event-store#readme",
   "dependencies": {
-    "jest": "^23.6.0"
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "jest": "^23.6.0",
+    "mongodb": "^3.1.8",
+    "morgan": "^1.9.1",
+    "nodemon": "^1.18.5",
+    "ramda": "^0.25.0"
   }
 }
