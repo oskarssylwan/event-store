@@ -1,6 +1,7 @@
 require('dotenv').config()
 
-const PORT                    = process.env.PORT
+const HTTP_PORT               = process.env.HTTP_PORT
+const TCP_PORT                = process.env.TCP_PORT
 
 const server                  = require('express')();
 const morgan                  = require('morgan');
@@ -31,12 +32,11 @@ server.get('/:id', (req, res) =>
   .catch(x => res.send(x))
 )
 
-server.listen(PORT, () => { console.log('Server listening on port ', PORT)});
+server.listen(HTTP_PORT, () => { console.log('Server listening on port ', HTTP_PORT)});
 
 // tcp
 
 const connectionListener = connection => {
-  connection.on('data', x => connection.write('hello'));
   connection.on('connect', x => console.log('Hello'));
 
   eventStore.on('newEvents', x => connection.write(JSON.stringify(x)));
@@ -48,4 +48,6 @@ const connectionListener = connection => {
 
 }
 
-net.createServer(connectionListener).listen(8124);
+const publisher = net.createServer(connectionListener)
+publisher.on('data', x => console.log('hello'));
+publisher.listen(TCP_PORT);
