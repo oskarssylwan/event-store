@@ -8,10 +8,12 @@ const bodyParser              = require('body-parser');
 const { createEventStore }    = require('./eventStore');
 const { User }                = require('./user');
 const { save, load }          = require('./mongo');
+const net                     = require('net');
 
 const aggregates              = [User];
 const eventStoreDependencies  = { aggregates, save };
 const eventStore              = createEventStore(eventStoreDependencies);
+eventStore.on('newEvents', x => console.log('new Events', JSON.stringify(x, null, 2)));
 
 server.use(morgan('dev'));
 server.use(bodyParser.json({}));
@@ -30,3 +32,20 @@ server.get('/:id', (req, res) =>
 )
 
 server.listen(PORT, () => { console.log('Server listening on port ', PORT)});
+
+// tcp
+
+const connectionListener = connection => {
+  connection.on('data', x => connection.write('hello'));
+  connection.on('connect', x => console.log('Hello'));
+
+  eventStore.on('newEvents', x => connection.write(JSON.stringify(x)));
+
+  load()
+  .then( x => JSON.stringify(x))
+  .then(x => connection.write(x))
+  .catch(x = connection.write('Cannot load events'))
+
+}
+
+net.createServer(connectionListener).listen(8124);

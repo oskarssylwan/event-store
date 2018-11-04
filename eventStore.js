@@ -31,8 +31,11 @@ const {
   unapply,
   head,
   propEq,
-  find
+  find,
+  tap
 } = require('ramda');
+
+const EventEmitter = require('events');
 
 const COMMON_FIELD_EVENTS = [
   ['CHANGED', set],
@@ -88,15 +91,22 @@ const addDefaults      = merge(AGGREGATE_DEFAULTS);
 const asAggregate      = pipe(addDefaults, addCommons);
 
 
-const processCommand = save => aggregates => command => {
-  return save(command);
+const processCommand = ({ save, publish }) => aggregates => command => {
+  return save(command).then(tap(publish));
 }
 
 const createEventStore = dependencies => {
+  const emitter     = new EventEmitter();
+  const publish     = x => emitter.emit('newEvents', x);
   const aggregates  = dependencies.aggregates;
-  const saveEvent   = dependencies.save;
+  const save        = dependencies.save;
+  const on          = (type, listener) => emitter.on(type, listener);
 
-  return { aggregates, processCommand: processCommand(saveEvent)(aggregates) }
+  return {
+    aggregates,
+    processCommand: processCommand({save, publish})(aggregates),
+    on
+  }
 
 }
 
