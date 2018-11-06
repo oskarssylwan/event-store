@@ -1,37 +1,36 @@
-const mongodb = require('mongodb').MongoClient;
+const createMongoIntegration = ({ mongo, url, name, collection }) => {
 
-const URL         = process.env.MONGO_ADRESS;
-const NAME        = process.env.MONGO_NAME;
-const COLLECTION  = process.env.MONGO_COLLECTION;
+  const save = data => new Promise((resolve, reject) => {
+    mongo.connect(url, (err, client) => {
 
-const save = data => new Promise((resolve, reject) => {
-  mongodb.connect(URL, (err, client) => {
+      client.db(name)
+        .collection(collection)
+        .insertOne(data, (err, r) => {
+          client.close();
+          if (err) reject(err);
+          resolve('Data saved successfully')
+      });
 
-    client.db(NAME)
-      .collection(COLLECTION)
-      .insertOne(data, (err, r) => {
-        client.close();
-        if (err) reject(err);
-        resolve('successfully')
     });
-
   });
-});
 
-const load = id => new Promise((resolve, reject) => {
-  mongodb.connect(URL, (err, client) => {
+  const load = id => new Promise((resolve, reject) => {
+    mongo.connect(url, (err, client) => {
 
-    client.db(NAME)
-      .collection(COLLECTION)
-      .find({})
-      .toArray((err, r) => {
-        client.close();
-        if (err) reject(err);
-        resolve(r);
+      client.db(name)
+        .collection(collection)
+        .find({})
+        .toArray((err, r) => {
+          client.close();
+          if (err) reject(err);
+          resolve(r);
+      });
+
     });
-
   });
-});
 
+  return { save, load }
 
-module.exports = { save, load }
+}
+
+module.exports = { createMongoIntegration }

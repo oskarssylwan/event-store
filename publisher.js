@@ -1,5 +1,3 @@
-const net = require('net');
-
 const createConnectionListener = ({ clients, onConnect }) => socket => {
   clients.push(socket);
 
@@ -10,7 +8,7 @@ const createConnectionListener = ({ clients, onConnect }) => socket => {
 
 const createBroadcast = clients => data => { clients.forEach(c => c.write(data)) }
 
-const createPublisher = ({ port, onConnect, initialize = true }) => {
+const createPublisher = ({ net, port, onConnect, initialize = true }) => {
 
   const clients             = [];
   const broadcast           = createBroadcast(clients);
