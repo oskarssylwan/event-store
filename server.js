@@ -10,11 +10,15 @@ const { createEventStore }    = require('./eventStore');
 const { User }                = require('./user');
 const { save, load }          = require('./mongo');
 const net                     = require('net');
+const { createPublisher }     = require('./publisher');
 
+const toJson                  = JSON.stringify;
+const onConnect               = () => load().then(toJson);
+const publisherDependencies   = { port: TCP_PORT, onConnect }
+const { broadcast }           = createPublisher(publisherDependencies);
 const aggregates              = [User];
-const eventStoreDependencies  = { aggregates, save };
+const eventStoreDependencies  = { aggregates, save, broadcast };
 const eventStore              = createEventStore(eventStoreDependencies);
-eventStore.on('newEvents', x => console.log('new Events', JSON.stringify(x, null, 2)));
 
 server.use(morgan('dev'));
 server.use(bodyParser.json({}));
@@ -32,22 +36,4 @@ server.get('/:id', (req, res) =>
   .catch(x => res.send(x))
 )
 
-server.listen(HTTP_PORT, () => { console.log('Server listening on port ', HTTP_PORT)});
-
-// tcp
-
-const connectionListener = connection => {
-  connection.on('connect', x => console.log('Hello'));
-
-  eventStore.on('newEvents', x => connection.write(JSON.stringify(x)));
-
-  load()
-  .then( x => JSON.stringify(x))
-  .then(x => connection.write(x))
-  .catch(x = connection.write('Cannot load events'))
-
-}
-
-const publisher = net.createServer(connectionListener)
-publisher.on('data', x => console.log('hello'));
-publisher.listen(TCP_PORT);
+server.listen(HTTP_PORT, () => { console.log('Reciever listening on port ', HTTP_PORT)});

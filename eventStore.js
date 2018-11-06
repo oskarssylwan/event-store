@@ -91,22 +91,20 @@ const addDefaults      = merge(AGGREGATE_DEFAULTS);
 const asAggregate      = pipe(addDefaults, addCommons);
 
 
-const processCommand = ({ save, publish }) => aggregates => command => {
-  return save(command).then(tap(publish));
+const createProcessCommand = ({ save, broadcast }) => aggregates => command => {
+  return save(command).then(tap(broadcast('Hello from event store module')));
 }
 
 const createEventStore = dependencies => {
-  const emitter     = new EventEmitter();
-  const publish     = x => emitter.emit('newEvents', x);
-  const aggregates  = dependencies.aggregates;
-  const save        = dependencies.save;
-  const on          = (type, listener) => emitter.on(type, listener);
+  const emitter         = new EventEmitter();
+  const publish         = x => emitter.emit('newEvents', x);
+  const broadcast       = dependencies.broadcast
+  const aggregates      = dependencies.aggregates;
+  const save            = dependencies.save;
+  const on              = (type, listener) => emitter.on(type, listener);
+  const processCommand  = createProcessCommand({ save, broadcast })(aggregates);
 
-  return {
-    aggregates,
-    processCommand: processCommand({save, publish})(aggregates),
-    on
-  }
+  return { aggregates, processCommand, on }
 
 }
 
