@@ -6,34 +6,46 @@ const MONGO_ADRESS                = process.env.MONGO_ADRESS;
 const MONGO_NAME                  = process.env.MONGO_NAME;
 const MONGO_COLLECTION            = process.env.MONGO_COLLECTION;
 
+const EventEmitter                = require('events');
 const net                         = require('net');
 const bodyParser                  = require('body-parser');
 const mongoClient                 = require('mongodb').MongoClient;
 const express                     = require('express')();
 const morgan                      = require('morgan');
 const { User }                    = require('./user');
-const { createEventStore }        = require('./eventStore');
-const { createMongoIntegration }  = require('./mongo');
 const { createPublisher }         = require('./publisher');
 
+const { createEventStore, PROCESS_COMMAND, COMMAND_PROCESSED } = require('./eventStore');
+const { createMongoIntegration, SAVE, SAVED, RETRIEVE, RETRIEVED }  = require('./mongo');
+
+
+
+const emitterStore                = new EventEmitter();
+const emitterMongo                = new EventEmitter();
 const toJson                      = JSON.stringify;
-const onConnect                   = () => load().then(toJson);
 const mongoDependencies           = { url: MONGO_ADRESS, name: MONGO_NAME, collection: MONGO_COLLECTION, mongo: mongoClient }
-const { save, load }              = createMongoIntegration(mongoDependencies);
-const publisherDependencies       = { port: TCP_PORT, onConnect, net }
-const { broadcast }               = createPublisher(publisherDependencies);
-const aggregates                  = [User];
-const eventStoreDependencies      = { aggregates, save, broadcast };
-const eventStore                  = createEventStore(eventStoreDependencies);
+// const onConnect                   = () => load().then(toJson);
+// const publisherDependencies       = { port: TCP_PORT, onConnect, net }
+const aggregates                  = [ User ];
+// const { broadcast }               = createPublisher(publisherDependencies);
+
+
+const mongoIntegration            = createMongoIntegration(mongoDependencies)(emitterMongo);
+const eventStore                  = createEventStore({ aggregates })(emitterStore);
+
+eventStore.on(COMMAND_PROCESSED, x => mongoIntegration.emit(SAVE, x))
 
 express.use(morgan('dev'));
 express.use(bodyParser.json({}));
 express.use(bodyParser.urlencoded({extended: false}));
 
-express.post('/', (req, res) =>
-  eventStore.processCommand(req.body)
-  .then(x => res.send(x))
-  .catch(x => res.send(x))
+express.post('/', (req, res) => {
+  console.log('post request');
+  eventStore.on(COMMAND_PROCESSED, x => res.send(x));
+  eventStore.emit(PROCESS_COMMAND, req.body);
+
+
+}
 );
 
 express.get('/:id', (req, res) =>

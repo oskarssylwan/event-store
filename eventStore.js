@@ -35,7 +35,8 @@ const {
   tap
 } = require('ramda');
 
-const EventEmitter = require('events');
+const PROCESS_COMMAND   = 'PROCESS_COMMAND';
+const COMMAND_PROCESSED = 'COMMAND_PROCESSED';
 
 const COMMON_FIELD_EVENTS = [
   ['CHANGED', set],
@@ -85,27 +86,21 @@ const createCommonEvents = aggregate => pipe(
   map(createCommonEvent)
 )(aggregate);
 
-const addCommonEvents  = converge(overEvents, [pipe(createCommonEvents, merge), identity]);
-const addCommons       = pipe(addCommonEvents);
-const addDefaults      = merge(AGGREGATE_DEFAULTS);
-const asAggregate      = pipe(addDefaults, addCommons);
+const addCommonEvents       = converge(overEvents, [pipe(createCommonEvents, merge), identity]);
+const addCommons            = pipe(addCommonEvents);
+const addDefaults           = merge(AGGREGATE_DEFAULTS);
+const asAggregate           = pipe(addDefaults, addCommons);
+const createProcessCommand  = aggregates => command => command
 
+const createEventStore = ({ aggregates }) => emitter => {
+  const emit            = type => data => {
+    console.log('inside emitter');
+    emitter.emit(type, data);
+  }
+  const processCommand  = createProcessCommand(aggregates);
+  emitter.on(PROCESS_COMMAND, pipe(tap(x => console.log('in event store')), processCommand, emit(COMMAND_PROCESSED)));
 
-const createProcessCommand = ({ save, broadcast }) => aggregates => command => {
-  return save(command).then(tap(broadcast('Hello from event store module')));
+  return emitter;
 }
 
-const createEventStore = dependencies => {
-  const emitter         = new EventEmitter();
-  const publish         = x => emitter.emit('newEvents', x);
-  const broadcast       = dependencies.broadcast
-  const aggregates      = dependencies.aggregates;
-  const save            = dependencies.save;
-  const on              = (type, listener) => emitter.on(type, listener);
-  const processCommand  = createProcessCommand({ save, broadcast })(aggregates);
-
-  return { aggregates, processCommand, on }
-
-}
-
-module.exports = { createEventStore }
+module.exports = { createEventStore, PROCESS_COMMAND, COMMAND_PROCESSED }

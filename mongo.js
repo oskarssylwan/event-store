@@ -1,4 +1,9 @@
-const createMongoIntegration = ({ mongo, url, name, collection }) => {
+const SAVE       = 'SAVE';
+const SAVED      = 'SAVED';
+const RETRIEVE   = 'RETRIEVE';
+const RETRIEVED  = 'RETRIEVED';
+
+const createMongoIntegration = ({ mongo, url, name, collection }) => emitter => {
 
   const save = data => new Promise((resolve, reject) => {
     mongo.connect(url, (err, client) => {
@@ -29,8 +34,12 @@ const createMongoIntegration = ({ mongo, url, name, collection }) => {
     });
   });
 
-  return { save, load }
+  emitter.on(SAVE, x => save(x).then(x => emitter.emit(SAVED, x)))
+  emitter.on(RETRIEVE, x => load(x).then(x => emitter.emit(RETRIEVED, x)))
+
+
+  return emitter
 
 }
 
-module.exports = { createMongoIntegration }
+module.exports = { createMongoIntegration, SAVE, SAVED, RETRIEVE, RETRIEVED }
