@@ -4,7 +4,8 @@
   "description": "Event store for Mingle",
   "scripts": {
     "start": "nodemon server.js",
-    "test": "jest"
+    "test": "jest",
+		"test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",

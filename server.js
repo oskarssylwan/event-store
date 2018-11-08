@@ -8,10 +8,7 @@ const MONGO_COLLECTION            = process.env.MONGO_COLLECTION;
 
 const EventEmitter                = require('events');
 const net                         = require('net');
-const bodyParser                  = require('body-parser');
 const mongoClient                 = require('mongodb').MongoClient;
-const express                     = require('express')();
-const morgan                      = require('morgan');
 const { User }                    = require('./user');
 const { createPublisher }         = require('./publisher');
 
@@ -39,19 +36,6 @@ express.use(morgan('dev'));
 express.use(bodyParser.json({}));
 express.use(bodyParser.urlencoded({extended: false}));
 
-express.post('/', (req, res) => {
-  console.log('post request');
-  eventStore.on(COMMAND_PROCESSED, x => res.send(x));
-  eventStore.emit(PROCESS_COMMAND, req.body);
-
-
-}
-);
-
-express.get('/:id', (req, res) =>
-  load(req.params.id)
-  .then(x => res.json(x))
-  .catch(x => res.send(x))
-)
-
-express.listen(HTTP_PORT, () => { console.log('Reciever listening on port ', HTTP_PORT)});
+const express      = require('express')();
+const morgan       = require('morgan');
+const bodyParser   = require('body-parser');
