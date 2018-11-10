@@ -1,41 +1,39 @@
 require('dotenv').config()
+const { pipe } = require('ramda')
+const EventEmitter = require('events')
+const net = require('net')
+const { createEventStore, PROCESS_COMMAND, COMMAND_PROCESSED } = require('./eventStore')
+const { createMongoIntegration, SAVE, SAVED, RETRIEVE, RETRIEVED }  = require('./mongo')
+const { createReceiver, REQUEST, RESPONSE } = require('./receiver')
+const { createPublisher, PUBLISH } = require('./publisher')
+const mongoClient = require('mongodb').MongoClient
+const { User } = require('./user')
+const express = require('express')()
+const morgan = require('morgan')
+const bodyParser = require('body-parser')
 
-const HTTP_PORT                   = process.env.HTTP_PORT
-const TCP_PORT                    = process.env.TCP_PORT
-const MONGO_ADRESS                = process.env.MONGO_ADRESS;
-const MONGO_NAME                  = process.env.MONGO_NAME;
-const MONGO_COLLECTION            = process.env.MONGO_COLLECTION;
+const HTTP_PORT = process.env.HTTP_PORT
+const TCP_PORT = process.env.TCP_PORT
+const MONGO_ADRESS = process.env.MONGO_ADRESS
+const MONGO_NAME = process.env.MONGO_NAME
+const MONGO_COLLECTION = process.env.MONGO_COLLECTION
 
-const EventEmitter                = require('events');
-const net                         = require('net');
-const mongoClient                 = require('mongodb').MongoClient;
-const { User }                    = require('./user');
-const { createPublisher }         = require('./publisher');
+const aggregates = [ User ]
+const middleware = [morgan('dev'), bodyParser.json({}), bodyParser.urlencoded({ extended: false })]
+const mongoDependencies = { url: MONGO_ADRESS, name: MONGO_NAME, collection: MONGO_COLLECTION, mongo: mongoClient }
+const publisherDependencies = { port: TCP_PORT, net }
+const receiverDependencies = { express, middleware, port: HTTP_PORT }
+const eventStoreDependencies = { aggregates }
 
-const { createEventStore, PROCESS_COMMAND, COMMAND_PROCESSED } = require('./eventStore');
-const { createMongoIntegration, SAVE, SAVED, RETRIEVE, RETRIEVED }  = require('./mongo');
+const emitter = pipe(
+  createReceiver(receiverDependencies),
+  createEventStore(eventStoreDependencies),
+  createMongoIntegration(mongoDependencies),
+  createPublisher(publisherDependencies)
+)(new EventEmitter())
 
+const asJSON = JSON.stringify
 
-
-const emitterStore                = new EventEmitter();
-const emitterMongo                = new EventEmitter();
-const toJson                      = JSON.stringify;
-const mongoDependencies           = { url: MONGO_ADRESS, name: MONGO_NAME, collection: MONGO_COLLECTION, mongo: mongoClient }
-// const onConnect                   = () => load().then(toJson);
-// const publisherDependencies       = { port: TCP_PORT, onConnect, net }
-const aggregates                  = [ User ];
-// const { broadcast }               = createPublisher(publisherDependencies);
-
-
-const mongoIntegration            = createMongoIntegration(mongoDependencies)(emitterMongo);
-const eventStore                  = createEventStore({ aggregates })(emitterStore);
-
-eventStore.on(COMMAND_PROCESSED, x => mongoIntegration.emit(SAVE, x))
-
-express.use(morgan('dev'));
-express.use(bodyParser.json({}));
-express.use(bodyParser.urlencoded({extended: false}));
-
-const express      = require('express')();
-const morgan       = require('morgan');
-const bodyParser   = require('body-parser');
+emitter.on(REQUEST, x => emitter.emit(PROCESS_COMMAND, x))
+emitter.on(COMMAND_PROCESSED, x => emitter.emit(SAVE, x))
+emitter.on(SAVED, x => emitter.emit(PUBLISH, asJSON(x)))

@@ -13,7 +13,7 @@ const createMongoIntegration = ({ mongo, url, name, collection }) => emitter => 
         .insertOne(data, (err, r) => {
           client.close();
           if (err) reject(err);
-          resolve('Data saved successfully')
+          resolve(data)
       });
 
     });

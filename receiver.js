@@ -18,12 +18,13 @@ const onPost = fn => path => express => {
 }
 
 const handleRequest = emitter => (req, res) => {
-  emitter.on(RESPONSE, x => res.send(x))
+  // emitter.on(RESPONSE, x => res.send(x))
   emitter.emit(REQUEST, req.body)
+  res.send('OK')
 }
 
 const listen = port => express => {
-  express.listen(port, () => log(port))
+  express.listen(port, () => logStart(port))
 }
 
 const createReceiver = ({ port, express, middleware }) => emitter => {
