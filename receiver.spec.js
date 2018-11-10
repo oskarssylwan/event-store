@@ -1,23 +1,19 @@
+const { head, pipe } = require('ramda')
 const { createReceiver, REQUEST, RESPONSE } = require('./receiver')
+const { createEventEmitter } = require('./emitter.mock')
 
 const port        = 3000
 const middleware  = []
-const on          = jest.fn()
-const emit        = jest.fn()
 const use         = jest.fn()
 const listen      = jest.fn()
 const post        = jest.fn()
-const emitter     = { on, emit }
 const express     = { listen, use, post }
+const emitter     = createEventEmitter()
 const receiver    = createReceiver({ port, middleware, express})(emitter)
-
-
-// TODO: add test cases for the event emitter
 
 describe('Receiver Module', () => {
 
   describe('Public API', () => {
-
     it('should export a factory method', () => {
       expect(typeof createReceiver).toBe('function')
     })
@@ -26,19 +22,29 @@ describe('Receiver Module', () => {
       expect(REQUEST).toBeTruthy()
       expect(RESPONSE).toBeTruthy()
     })
-
   })
 
-  it('should listen on correct port', () => {
-    expect(listen).toBeCalledWith(port, expect.any(Function))
+  describe('Server Setup', () => {
+    it('should listen on correct port', () => {
+      expect(listen).toBeCalledWith(port, expect.any(Function))
+    })
+
+    it('should use supplied middleware', () => {
+      expect(use).toBeCalledWith(middleware)
+    })
+
+    it('should listen on incoming requests on root route', () => {
+      expect(post).toBeCalledWith('/', expect.any(Function))
+    })
   })
 
-  it('should use supplied middleware', () => {
-    expect(use).toBeCalledWith(middleware)
-  })
+  // describe('Emitter', () => {
+  //   test(`returned emitter should listen on ${RESPONSE} event type`, () => {
+  //     expect(pipe(head, head)(emitter.get(RESPONSE))).toEqual(RESPONSE)
+  //   })
+  // })
 
-  it('should listen on incoming requests on root route', () => {
-    expect(post).toBeCalledWith('/', expect.any(Function))
-  })
+
+
 
 })
