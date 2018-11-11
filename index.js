@@ -18,6 +18,9 @@ const MONGO_ADRESS = process.env.MONGO_ADRESS
 const MONGO_NAME = process.env.MONGO_NAME
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION
 
+const ERROR = 'ERROR'
+const LOG = 'LOG'
+
 const aggregates = [ User ]
 const middleware = [morgan('dev'), bodyParser.json({}), bodyParser.urlencoded({ extended: false })]
 const mongoDependencies = { url: MONGO_ADRESS, name: MONGO_NAME, collection: MONGO_COLLECTION, mongo: mongoClient }
@@ -37,3 +40,6 @@ const asJSON = JSON.stringify
 emitter.on(REQUEST, x => emitter.emit(PROCESS_COMMAND, x))
 emitter.on(COMMAND_PROCESSED, x => emitter.emit(SAVE, x))
 emitter.on(SAVED, x => emitter.emit(PUBLISH, asJSON(x)))
+emitter.on(SAVED, x => emitter.emit(RESPONSE, x))
+emitter.on(LOG, console.log)
+emitter.on(ERROR, console.log)

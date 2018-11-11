@@ -1,7 +1,9 @@
-const SAVE       = 'SAVE';
-const SAVED      = 'SAVED';
-const RETRIEVE   = 'RETRIEVE';
-const RETRIEVED  = 'RETRIEVED';
+const SAVE       = 'SAVE'
+const SAVED      = 'SAVED'
+const RETRIEVE   = 'RETRIEVE'
+const RETRIEVED  = 'RETRIEVED'
+const ERROR      = 'ERROR'
+const LOG        = 'LOG'
 
 const createMongoIntegration = ({ mongo, url, name, collection }) => emitter => {
 
@@ -34,9 +36,25 @@ const createMongoIntegration = ({ mongo, url, name, collection }) => emitter => 
     });
   });
 
-  emitter.on(SAVE, x => save(x).then(x => emitter.emit(SAVED, x)))
-  emitter.on(RETRIEVE, x => load(x).then(x => emitter.emit(RETRIEVED, x)))
+  const onError = x => emitter.emit(ERROR, x)
 
+  emitter.on(SAVE, x => {
+
+    emitter.emit(LOG, 'Saving events')
+
+    save(x)
+    .then(x => emitter.emit(SAVED, x))
+    .catch(onError)
+  })
+
+  emitter.on(RETRIEVE, x => {
+
+    emitter.emit(LOG, 'Retrieving events')
+
+    load(x)
+    .then(x => emitter.emit(RETRIEVED, x))
+    .catch(onError)
+  })
 
   return emitter
 

@@ -1,11 +1,9 @@
-const { pipe } = require('ramda');
+const { pipe } = require('ramda')
 
-const REQUEST = 'REQUEST';
-const RESPONSE = 'RESPONSE';
-
-const logStart = port => {
-  console.log('Reciever listening on port ', port)
-}
+const REQUEST = 'REQUEST'
+const RESPONSE = 'RESPONSE'
+const LOG = 'LOG'
+const ERROR = 'ERROR'
 
 const use = middleware => express => {
   express.use(middleware)
@@ -18,13 +16,21 @@ const onPost = fn => path => express => {
 }
 
 const handleRequest = emitter => (req, res) => {
-  // emitter.on(RESPONSE, x => res.send(x))
+  let sent = false;
+
+  const send = response => {
+    res.send(response)
+    sent = true
+  }
+
+  setTimeout(() => { !sent && send('Processing commands') }, 5000)
+  emitter.once(RESPONSE, () => { send('Success') })
+  emitter.once(ERROR, x => { send(x) })
   emitter.emit(REQUEST, req.body)
-  res.send('OK')
 }
 
-const listen = port => express => {
-  express.listen(port, () => logStart(port))
+const listen = port => emitter => express => {
+  express.listen(port, () => emitter.emit(LOG, `Receiver listening on port ${port}`))
 }
 
 const createReceiver = ({ port, express, middleware }) => emitter => {
@@ -32,7 +38,7 @@ const createReceiver = ({ port, express, middleware }) => emitter => {
   pipe(
     use(middleware),
     onPost(handleRequest(emitter))('/'),
-    listen(port)
+    listen(port)(emitter)
   )(express)
 
   return emitter;

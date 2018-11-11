@@ -1,12 +1,14 @@
 
-const PUBLISH = 'publish';
+const PUBLISH = 'publish'
+const LOG     = 'LOG'
+const ERROR   = 'ERROR'
 
 const createConnectionListener = ({ clients, onConnect }) => socket => {
   clients.push(socket)
 
   onConnect && onConnect()
     .then( x => socket.write(x))
-    .catch( x => console.log(x))
+    .catch(console.log)
 }
 
 const createBroadcast = clients => data => { clients.forEach(c => c.write(data)) }
@@ -19,9 +21,12 @@ const createPublisher = ({ net, port, onConnect }) => emitter => {
   const server              = net.createServer(connectionListener)
 
   server.listen(port)
-  server.on('listening', () => console.log('Publisher listening on port ', port))
+  server.on('listening', () => emitter.emit(LOG, `Publisher listening on port ${port}`))
 
-  emitter.on(PUBLISH, broadcast)
+  emitter.on(PUBLISH, x => {
+    emitter.emit(LOG, 'Publishing to subscribers')
+    broadcast(x)
+  })
 
   return emitter
 
