@@ -1,0 +1,17 @@
+version: '3'
+services:
+  event-store:
+    container_name: oskw-event-store
+    restart: always
+    build: .
+    ports:
+      - '3000:3000'
+      - '3001:3001'
+    links:
+      - mongo
+  mongo:
+    container_name: mongo
+    restart: always
+    image: mongo
+    ports:
+      - '27017:27017'

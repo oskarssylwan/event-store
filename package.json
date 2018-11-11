@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "description": "Event store for Mingle",
   "scripts": {
-    "postinstall": "npm run copy-env",
     "start": "nodemon server.js",
     "test": "jest",
 		"test:watch": "jest --watch",

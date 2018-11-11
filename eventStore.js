@@ -94,11 +94,10 @@ const createProcessCommand  = aggregates => command => command
 
 const createEventStore = ({ aggregates }) => emitter => {
   const emit            = type => data => {
-    console.log('inside emitter');
     emitter.emit(type, data);
   }
   const processCommand  = createProcessCommand(aggregates);
-  emitter.on(PROCESS_COMMAND, pipe(tap(x => console.log('in event store')), processCommand, emit(COMMAND_PROCESSED)));
+  emitter.on(PROCESS_COMMAND, pipe(processCommand, emit(COMMAND_PROCESSED)))
 
   return emitter;
 }
