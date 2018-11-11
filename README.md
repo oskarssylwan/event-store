@@ -9,6 +9,8 @@ docker-compose up
 
 ## Without docker
 ```
+git clone https://github.com/oskarssylwan/event-store.git
+cd event-store
 npm install
 npm copy-env
 npm start
