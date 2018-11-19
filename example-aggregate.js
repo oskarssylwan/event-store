@@ -14,6 +14,7 @@ const UserSchema = {
 
 const UserCreated = {
   type: 'USER_CREATED',
+  mapsTo: [ 'CREATE_USER' ],
   data: {
     id: { type: 'string' },
     name: { type: 'string' },
@@ -25,19 +26,20 @@ const UserCreated = {
 
 const EmailChanged = {
   type: 'EMAIL_CREATED',
+  mapsTo: [ 'UPDATE_EMAIL' ],
   data: { email: { type: 'string' } },
   required: [ 'email' ]
 }
 
 const NameChanged = {
   type: 'NAME_CHANGED',
+  mapsTo: [ 'UPDATE_NAME' ],
   data: { name: { type: 'string' } },
   required: [ 'name' ]
 }
 
 const CreateUser = {
   type: 'CREATE_USER',
-  mapsTo: [ 'UserCreated' ],
   data: {
     id: { type: 'string' },
     name: { type: 'string' },
@@ -49,14 +51,12 @@ const CreateUser = {
 
 const UpdateEmail = {
   type: 'UPDATE_EMAIL',
-  mapsTo: [ 'EmailChanged' ],
   data: { email: { type: 'string' } },
   required: [ 'email' ]
 }
 
 const UpdateName = {
   type: 'UPDATE_NAME',
-  mapsTo: [ 'NameChanged' ],
   data: { name: { type: 'string' } },
   required: [ 'name' ]
 }

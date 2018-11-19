@@ -3,25 +3,28 @@ const {
   ERROR,
   COMMAND_UNDEFINED,
   getCommandSchema,
-  validateCommand
+  validateCommand,
+  createMatchingEvents,
+  processCommand
 } = require('./core')
 const { createEventEmitter } = require('./emitter.mock')
 const { User } = require('./example-aggregate')
 
 const commandSchema = {
   type: 'CREATE_USER',
-  mapsTo: [ 'USER_CREATED' ],
   data: {
     id: { type: 'string' },
     name: { type: 'string' },
     email: { type: 'string', format: 'email' },
-    created: {type: 'string' }
+    created: {type: 'string' },
+    extraField: { type: 'string' }
   },
   required: [ 'id', 'name', 'email', 'created' ]
 }
 
 const eventSchema = {
   type: 'USER_CREATED',
+  mapsTo: [ 'CREATE_USER' ],
   data: {
     id: { type: 'string' },
     name: { type: 'string' },
@@ -83,5 +86,37 @@ describe('asJSONSchema', () => {
   //   expect(commandSchema)
   // })
 
+})
+
+describe('createMatchingEvents', () => {
+  it('should create events that are mapped to the given command', () => {
+    const events = createMatchingEvents([eventSchema], command)
+    expect(events).toEqual([{
+      type: 'USER_CREATED',
+      data: {
+        id: '123',
+        name: 'Root',
+        email: 'noreply@hotmail.com',
+        created: '543'
+      }
+    }])
+
+  })
+})
+
+describe('processCommand', () => {
+
+  it('should create events that are mapped to the given command', () => {
+    const events = processCommand([eventSchema], [commandSchema], command)
+    expect(events).toEqual([{
+      type: 'USER_CREATED',
+      data: {
+        id: '123',
+        name: 'Root',
+        email: 'noreply@hotmail.com',
+        created: '543'
+      }
+    }])
+  })
 
 })
