@@ -1,8 +1,7 @@
 
 const UserSchema = {
-  title: 'User',
-  description: 'This is a user schema',
-  type: 'object',
+  type: 'User',
+  description: 'Represents a application user',
   properties: {
     initialized: { type: 'integer', default: 0 },
     id: { type: 'string' },
@@ -14,10 +13,8 @@ const UserSchema = {
 }
 
 const UserCreated = {
-  title: 'UserCreated',
-  description: 'Event that for user creation',
-  type: 'object',
-  properties: {
+  type: 'USER_CREATED',
+  data: {
     id: { type: 'string' },
     name: { type: 'string' },
     email: { type: 'string' },
@@ -27,31 +24,21 @@ const UserCreated = {
 }
 
 const EmailChanged = {
-  title: 'EmailChanged',
-  description: 'Email has been changed event',
-  type: 'object',
-  properties: {
-    email: { type: 'string' },
-  },
+  type: 'EMAIL_CREATED',
+  data: { email: { type: 'string' } },
   required: [ 'email' ]
 }
 
 const NameChanged = {
-  title: 'NameChanged',
-  description: 'Name has been changed event',
-  type: 'object',
-  properties: {
-    name: { type: 'string' },
-  },
+  type: 'NAME_CHANGED',
+  data: { name: { type: 'string' } },
   required: [ 'name' ]
 }
 
 const CreateUser = {
-  title: 'CreateUser',
-  description: 'Command for creating a user',
-  type: 'object',
+  type: 'CREATE_USER',
   mapsTo: [ 'UserCreated' ],
-  properties: {
+  data: {
     id: { type: 'string' },
     name: { type: 'string' },
     email: { type: 'string' },
@@ -61,24 +48,16 @@ const CreateUser = {
 }
 
 const UpdateEmail = {
-  title: 'UpdateEmail',
-  description: 'Command for updating email',
-  type: 'object',
+  type: 'UPDATE_EMAIL',
   mapsTo: [ 'EmailChanged' ],
-  properties: {
-    email: { type: 'string' },
-  },
+  data: { email: { type: 'string' } },
   required: [ 'email' ]
 }
 
 const UpdateName = {
-  title: 'UpdateName',
-  description: 'Command for updating name',
-  type: 'object',
+  type: 'UPDATE_NAME',
   mapsTo: [ 'NameChanged' ],
-  properties: {
-    name: { type: 'string' },
-  },
+  data: { name: { type: 'string' } },
   required: [ 'name' ]
 }
 
@@ -87,3 +66,5 @@ const User = {
   events: [UserCreated, NameChanged, EmailChanged],
   commands: [CreateUser, UpdateName, UpdateEmail]
 }
+
+module.exportd = { User }
