@@ -2,7 +2,7 @@ require('dotenv').config()
 const { pipe } = require('ramda')
 const EventEmitter = require('events')
 const net = require('net')
-const { createEventStore, PROCESS_COMMAND, COMMAND_PROCESSED } = require('./eventStore')
+const { createEventStore, PROCESS_EVENTS, EVENTS_PROCESSED } = require('./eventStore')
 const { createMongoIntegration, SAVE, SAVED, RETRIEVE, RETRIEVED }  = require('./mongo')
 const { createReceiver, REQUEST, RESPONSE } = require('./receiver')
 const { createPublisher, PUBLISH } = require('./publisher')
@@ -37,8 +37,8 @@ const emitter = pipe(
 
 const asJSON = JSON.stringify
 
-emitter.on(REQUEST, x => emitter.emit(PROCESS_COMMAND, x))
-emitter.on(COMMAND_PROCESSED, x => emitter.emit(SAVE, x))
+emitter.on(REQUEST, x => emitter.emit(PROCESS_EVENTS, x))
+emitter.on(EVENTS_PROCESSED, x => emitter.emit(SAVE, x))
 emitter.on(SAVED, x => emitter.emit(PUBLISH, asJSON(x)))
 emitter.on(SAVED, x => emitter.emit(RESPONSE, x))
 emitter.on(LOG, console.log)

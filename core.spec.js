@@ -1,122 +1,53 @@
-const { __ , prop} = require('ramda')
 const {
-  ERROR,
-  COMMAND_UNDEFINED,
-  getCommandSchema,
-  validateCommand,
-  createMatchingEvents,
-  processCommand
+  createEventReplayer,
+  findReducer,
+  findBoundaries,
+  test
 } = require('./core')
-const { createEventEmitter } = require('./emitter.mock')
-const { User } = require('./example-aggregate')
 
-const commandSchema = {
-  type: 'CREATE_USER',
-  data: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    email: { type: 'string', format: 'email' },
-    created: {type: 'string' },
-    extraField: { type: 'string' }
-  },
-  required: [ 'id', 'name', 'email', 'created' ]
+const TYPE = 'USER'
+const aggregateState = 'final state after all events have been played'
+const reducer = jest.fn().mockReturnValue(aggregateState)
+const validatorOne = jest.fn()
+const validatorTwo = jest.fn()
+const eventOne = { type: 'FIRST_EVENT' }
+const eventTwo = { type: 'SECOND_EVENT' }
+const eventThree = { type: 'THIRD_EVENT' }
+const events = [eventOne, eventTwo, eventThree]
+
+const rootAggregate = {
+  type: TYPE,
+  reducer,
+  bounderies: [validatorOne, validatorTwo]
 }
 
-const eventSchema = {
-  type: 'USER_CREATED',
-  mapsTo: [ 'CREATE_USER' ],
-  data: {
-    id: { type: 'string' },
-    name: { type: 'string' },
-    email: { type: 'string' },
-    created: {type: 'string' }
-  },
-  required: [ 'id', 'name', 'email', 'created' ]
-}
+const aggregate = createEventReplayer([rootAggregate])(TYPE)(events)
+// const temp = test(reducer)
 
-const command = {
-  type: 'CREATE_USER',
-  data: {
-    id: '123',
-    name: 'Root',
-    email: 'noreply@hotmail.com',
-    created: '543'
-  }
-}
+describe('playEvents', () => {
 
-const invalidCommand = {
-  type: 'CREATE_USER',
-  data: {
-    id: 123,
-    name: 'Root',
-    email: 'not-an-email',
-    created: 123
-  }
-}
-
-describe('getCommandSchema', () => {
-  const getSchema = getCommandSchema(__, [ commandSchema ])
-
-  it('should return the schema of the given command', () => {
-    expect(getSchema(command)).toBe(commandSchema)
+  it('should call reducer over list of events', () => {
+    expect(reducer).toHaveBeenNthCalledWith(1, {}, eventOne)
+    expect(reducer).toHaveBeenNthCalledWith(2, aggregateState, eventTwo)
+    expect(reducer).toHaveBeenNthCalledWith(3, aggregateState, eventThree)
+    expect(reducer).toHaveBeenCalledTimes(3)
   })
 
-  it(`should return an error if the given command is't defined on any aggregate`, () => {
-    expect(getSchema({ type: 'UNDEFINED', data: {} })).toEqual({ type: ERROR, message: COMMAND_UNDEFINED})
+  it('should call each boundary validator with the resulting aggregate state', () => {
+    expect(validatorOne).toHaveBeenCalledWith(aggregateState)
+    expect(validatorTwo).toHaveBeenCalledWith(aggregateState)
   })
 
 })
 
-describe('validateCommand', () => {
-  const validate = validateCommand(commandSchema)
-
-  it('should return true if the properties of the command conforms to matching schema', () => {
-    expect(validate(command)).toBe(true)
-  })
-
-  it(`should return an error if the command breaks schema rules`, () => {
-    expect(prop('type', validate(invalidCommand))).toEqual(ERROR)
-  })
-
-})
-
-describe('asJSONSchema', () => {
-
-  // it('should omit properties not relevant in validation', () => {
-  //   expect(commandSchema)
-  // })
-
-})
-
-describe('createMatchingEvents', () => {
-  it('should create events that are mapped to the given command', () => {
-    const events = createMatchingEvents([eventSchema], command)
-    expect(events).toEqual([{
-      type: 'USER_CREATED',
-      data: {
-        id: '123',
-        name: 'Root',
-        email: 'noreply@hotmail.com',
-        created: '543'
-      }
-    }])
-
+describe('findReducer', () => {
+  it('should return reducer function of given aggregate type', () => {
+    expect(findReducer(TYPE)([rootAggregate])).toEqual(reducer)
   })
 })
 
-describe('processCommand', () => {
-
-  it('should create events that are mapped to the given command', () => {
-    const events = processCommand([eventSchema], [commandSchema], command)
-    expect(events).toEqual([{
-      type: 'USER_CREATED',
-      data: {
-        id: '123',
-        name: 'Root',
-        email: 'noreply@hotmail.com',
-        created: '543'
-      }
-    }])
+describe('findBoundaries', () => {
+  it('should return boundaries list of given aggregate type', () => {
+    expect(findBoundaries(TYPE)([rootAggregate])).toEqual([validatorOne, validatorTwo])
   })
-
 })

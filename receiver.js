@@ -16,7 +16,7 @@ const onPost = fn => path => express => {
 }
 
 const handleRequest = emitter => (req, res) => {
-  let sent = false;
+  let sent = false
 
   const send = response => {
     res.send(response)
@@ -24,9 +24,12 @@ const handleRequest = emitter => (req, res) => {
   }
 
   setTimeout(() => { !sent && send('Processing commands') }, 5000)
+
   emitter.once(RESPONSE, () => { send('Success') })
   emitter.once(ERROR, x => { send(x) })
-  emitter.emit(REQUEST, req.body)
+
+  const { type, id } = req.params
+  emitter.emit(REQUEST, {type, id})
 }
 
 const listen = port => emitter => express => {
@@ -37,7 +40,7 @@ const createReceiver = ({ port, express, middleware }) => emitter => {
 
   pipe(
     use(middleware),
-    onPost(handleRequest(emitter))('/'),
+    onPost(handleRequest(emitter))('/stream/:type/:id'),
     listen(port)(emitter)
   )(express)
 
