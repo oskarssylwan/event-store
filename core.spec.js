@@ -5,24 +5,25 @@ const {
   test
 } = require('./core')
 
+const ERROR = 'ERROR'
 const TYPE = 'USER'
+const BOUNDARY_ERROR = 'a good error message'
 const aggregateState = 'final state after all events have been played'
 const reducer = jest.fn().mockReturnValue(aggregateState)
 const validatorOne = jest.fn()
 const validatorTwo = jest.fn()
+const failingValidator = jest.fn().mockReturnValue(BOUNDARY_ERROR)
 const eventOne = { type: 'FIRST_EVENT' }
 const eventTwo = { type: 'SECOND_EVENT' }
 const eventThree = { type: 'THIRD_EVENT' }
 const events = [eventOne, eventTwo, eventThree]
-
-const rootAggregate = {
-  type: TYPE,
-  reducer,
-  bounderies: [validatorOne, validatorTwo]
-}
+const boundaries = [validatorOne, validatorTwo]
+const failingBoundaries = [ failingValidator ]
+const rootAggregate = { type: TYPE, reducer, boundaries }
+const failingRootAggregate = { type: TYPE, reducer: jest.fn(), boundaries: failingBoundaries }
 
 const aggregate = createEventReplayer([rootAggregate])(TYPE)(events)
-// const temp = test(reducer)
+const boundariesError = createEventReplayer([failingRootAggregate])(TYPE)(events)
 
 describe('playEvents', () => {
 
@@ -36,6 +37,14 @@ describe('playEvents', () => {
   it('should call each boundary validator with the resulting aggregate state', () => {
     expect(validatorOne).toHaveBeenCalledWith(aggregateState)
     expect(validatorTwo).toHaveBeenCalledWith(aggregateState)
+  })
+
+  it('should return aggregate state after after applying each event', () => {
+    expect(aggregate).toEqual(aggregateState)
+  })
+
+  it('should return an error containing error messages from each failing boundary validator', () => {
+    expect(boundariesError).toEqual({ type: ERROR, messages: [ BOUNDARY_ERROR ] })
   })
 
 })
