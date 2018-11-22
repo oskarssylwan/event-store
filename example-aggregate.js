@@ -92,10 +92,17 @@ const UpdateName = {
   required: [ 'name' ]
 }
 
+// const User = {
+//   schema: UserSchema,
+//   events: [UserCreated, NameChanged, EmailChanged],
+//   commands: [CreateUser, UpdateName, UpdateEmail]
+// }
+
 const User = {
-  schema: UserSchema,
-  events: [UserCreated, NameChanged, EmailChanged],
-  commands: [CreateUser, UpdateName, UpdateEmail]
+  type: 'USER',
+  reducer: identity,
+  boundaries: [() => null]
 }
+
 
 module.exportd = { User }

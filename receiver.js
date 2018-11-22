@@ -29,7 +29,8 @@ const handleRequest = emitter => (req, res) => {
   emitter.once(ERROR, x => { send(x) })
 
   const { type, id } = req.params
-  emitter.emit(REQUEST, {type, id})
+  const event = {type, id, ...req.body}
+  emitter.emit(REQUEST, event)
 }
 
 const listen = port => emitter => express => {

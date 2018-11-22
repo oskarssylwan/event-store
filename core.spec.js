@@ -28,7 +28,7 @@ const boundariesError = createEventReplayer([failingRootAggregate])(TYPE)(events
 describe('playEvents', () => {
 
   it('should call reducer over list of events', () => {
-    expect(reducer).toHaveBeenNthCalledWith(1, {}, eventOne)
+    expect(reducer).toHaveBeenNthCalledWith(1, undefined, eventOne)
     expect(reducer).toHaveBeenNthCalledWith(2, aggregateState, eventTwo)
     expect(reducer).toHaveBeenNthCalledWith(3, aggregateState, eventThree)
     expect(reducer).toHaveBeenCalledTimes(3)

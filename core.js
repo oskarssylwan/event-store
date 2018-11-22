@@ -34,14 +34,14 @@ const asError = messages => ({ type: ERROR, messages: is(String, messages) ? [me
 const emit = curry((emitter, type, data) => emitter.emit(type, data))
 
 const createEventReplayer = curry((aggregates, type, events) => {
-  const aggregate = reduce(findReducer(type)(aggregates), {}, events)
+  const aggregate = reduce(findReducer(type)(aggregates), undefined, events)
   const errors = pipe(map(applyTo(aggregate)), reject(isNil) )(findBoundaries(type)(aggregates))
   return isEmpty(errors) ? aggregate : asError(errors)
 })
 
 const createEventStore = ({ aggregates }) => emitter => {
   emitter.on(PROCESS_EVENTS, x => {
-    emit(emitter, LOG, 'processing event')
+    emit(emitter, LOG, `processing event ${JSON.stringify(x)}`)
     emit(emitter, EVENTS_PROCESSED, x)
   })
 
