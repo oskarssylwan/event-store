@@ -1,4 +1,5 @@
 # Event Store
+Currently only the happy flow is implemented
 
 ## Getting started
 Assuming you have initialised a project, the following will create:
@@ -81,3 +82,9 @@ const namedChangedEvent = {
 ```
 GET /projection/:aggregateType/:aggregateId
 ```
+
+## Roadmap
+* error handling
+* event validation
+* snapshotting
+* concurrency handling
