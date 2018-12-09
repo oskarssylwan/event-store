@@ -4,7 +4,8 @@ const {
   lensProp,
   view,
   identity,
-  T
+  T,
+  equals
 } = require('ramda')
 
 const USER = 'USER'
@@ -18,6 +19,8 @@ const typeLens = lensProp('type')
 const setName = set(nameLens)
 const setEmail = set(emailLens)
 const viewType = view(typeLens)
+const viewEmail = view(emailLens)
+const viewName = view(nameLens)
 const isType = type => (_, event) => equals(type, viewType(event))
 const createUser = (state, { data }) => data
 const setUsername = (state, { data }) => setName(viewName(data), state)
@@ -32,9 +35,9 @@ const reducer = cond([
 
 const User = {
   type: 'USER',
-  reducer: identity,
+  reducer: reducer,
   boundaries: [() => null]
 }
 
 
-module.exportd = { User }
+module.exports = { User }

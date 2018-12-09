@@ -1,5 +1,5 @@
 const { createEventStore } = require('../src/index')
-const { user } = require('./user')
+const { User } = require('./user')
 
 const config = {
   httpPort: 3000,
@@ -9,4 +9,4 @@ const config = {
   mongoCollection: 'events',
 }
 
-createEventStore(config)([ user ])
+createEventStore(config)([ User ])

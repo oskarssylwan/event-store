@@ -12,7 +12,13 @@ const createReceiver = express => config => middleware => {
     ({
        send: _ =>
        {
-         app[method.toLowerCase()](path, (req, res) => { res.json(fn(req)) })
+         app[method.toLowerCase()](path, (req, res) => {
+           fn(req)
+             .fork(
+               x => res.json(x),
+               x => res.json(x)
+             )
+         })
        }
     })
   })
