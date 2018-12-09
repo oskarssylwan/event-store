@@ -4,9 +4,10 @@ const { createMongoIntegration } = require('./mongo/index')
 const { createReceiver } = require('./receiver/index')
 const { Either } = require('monet')
 const middleware = [morgan('dev'), bodyParser.json({}), bodyParser.urlencoded({ extended: false })]
-const { find, propEq, pipe, reduce } = require('ramda')
+const { find, propEq, pipe, reduce, prop } = require('ramda')
 const { eitherToFuture } = require('./utility/index')
 const Future = require('fluture')
+const { createPublisher } = require('./publisher')
 
 const toAggregateReq = req => Either.of({
   type: req.params.aggregateType,
@@ -25,6 +26,8 @@ const addAggregateIdentifiersToEvents = aggregateReq =>
   }))
 })
 
+const tap = fn => x => { fn(x); return x }
+
 const createEventStore = config => aggregates => {
 
   const receiver = createReceiver({
@@ -36,6 +39,8 @@ const createEventStore = config => aggregates => {
     name: config.mongoName,
     collection: config.mongoCollection
   })
+
+  const { broadcast } = createPublisher({ port: config.tcpPort })
 
   const addOldEvents = aggregateReq =>
     loadEvents(aggregateReq.id)
@@ -85,6 +90,7 @@ const createEventStore = config => aggregates => {
       .chain(addOldEvents)
       .chain(pipe(validateAggregateState, eitherToFuture))
       .chain(saveNewEvents)
+      .map(tap(pipe(prop('newEvents'), JSON.stringify, broadcast)))
       .map(x => {console.log('vad', x); return x})
 
   const handleProjectionReq = req =>
