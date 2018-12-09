@@ -5,10 +5,11 @@ const { Either } = require('monet')
 const { createMongoIntegration } = require('./mongo/index')
 const middleware = [morgan('dev'), bodyParser.json({}), bodyParser.urlencoded({ extended: false })]
 
-const toReq = req => Either.of({
+const toAggregateReq = req => Either.of({
   type: req.params.aggregateType,
   id: req.params.aggregateId,
-  events: req.body
+  newEvents: req.body,
+  oldEvents: []
 })
 
 const onSuccess = res => x => res.json(x)
@@ -25,16 +26,21 @@ const addAggregateIdentifiersToEvents = aggregateReq =>
 
 const createEventStore = config => aggregates => {
 
-  const { save } = createMongoIntegration({
+  const { save, load } = createMongoIntegration({
     url: config.mongoAdress,
     name: config.mongoName,
     collection: config.mongoCollection
   })
 
+  const addOldEvents = aggregateReq =>
+    load(aggregateReq.id)
+      .map(oldEvents => ({ ...aggregateReq, oldEvents }))
+
+
   const handleStreamReq = (req, res) =>
-    toReq(req)
-      .map(addAggregateIdentifiersToEvents)
-      .chain(save)
+    toAggregateReq(req)
+      .chain(addOldEvents)
+      .map(validateAggregateState)
       .fork(onFail(res), onSuccess(res))
 
   express.use(middleware)
