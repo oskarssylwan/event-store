@@ -9,7 +9,6 @@ const createMongoIntegration = mongo => config => {
       client.db(config.name)
         .collection(config.collection)
         .insertMany(data, (err, r) => {
-          console.log('data', data)
           client.close();
           if (err) reject(err);
           resolve(data)

@@ -1,23 +1,22 @@
 {
-  "name": "mingle-event-store",
+  "name": "@oskarssylwan/event-store",
   "version": "0.0.0",
-  "description": "Event store for Mingle",
+  "description": "PoC Event Store",
+  "main": "./src/index.js",
+  "author": "Oskars Sylwan",
   "scripts": {
     "start": "nodemon ./example/app.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oskarssylwan/mingle-event-store.git"
+    "url": "git+https://github.com/oskarssylwan/event-store.git"
   },
-  "author": "Oskars Sylwan",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/oskarssylwan/mingle-event-store/issues"
+    "url": "https://github.com/oskarssylwan/event-store/issues"
   },
-  "homepage": "https://github.com/oskarssylwan/mingle-event-store#readme",
+  "homepage": "https://github.com/oskarssylwan/event-store#readme",
   "dependencies": {
-    "ajv": "^6.5.5",
-    "dotenv": "^6.1.0",
     "express": "^4.16.4",
     "fluture": "^10.2.0",
     "jest": "^23.6.0",
