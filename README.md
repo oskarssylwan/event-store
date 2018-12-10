@@ -12,13 +12,21 @@ npm i --save @oskarssylwan/event-store
 ```
 const { createEventStore } = require('@oskarssylwan/event-store')
 
+const config = {
+  httpPort: 3000,
+  tcpPort: 3001,
+  mongoAdress: 'mongodb://localhost:27017/dev-store',
+  mongoName: 'dev-store',
+  mongoCollection: 'events',
+}
+
 const aggregateRoot = {
   type: 'EXAMPLE_AGGREGATE',
   reducer: (state, event) => state,
   boundaries: [aggregate => null]
 }
 
-createEventStore([ aggregateRoot ])
+createEventStore(config)([ aggregateRoot ])
 
 ```
 
