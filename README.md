@@ -1,5 +1,5 @@
 # Event Store
-Currently only the happy flow is implemented
+Proof of concept for an event store implemented in nodejs.
 
 ## Getting started
 Assuming you have initialised a project, the following will create:
